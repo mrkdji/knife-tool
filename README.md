@@ -13,28 +13,28 @@ If you use git you can also add it as a submodule:
 # What you can do with the knife tool:
 - Simple cut
 
-![simple_cut](images\simple_cut.gif)
+![simple_cut](images/simple_cut.gif)
 
 - Cut with multiple inner points
 
-![multiple_points](images\multiple_points.gif)
+![multiple_points](images/multiple_points.gif)
 
 - Multiple cuts at once
 
-![multiple_cuts](images\multiple_cuts.gif)
+![multiple_cuts](images/multiple_cuts.gif)
 
 - Cuts that self-intersect (with a caveat)
 
-![self_intersection](images\self_intersection.gif)
+![self_intersection](images/self_intersection.gif)
 
 # What you can't do with the knife tool:
 - Carve holes
 
-![hole](images\hole.gif)
+![hole](images/hole.gif)
 
 - Cuts that self-intersect inside the polygon:
 
-![self_intersection_inside](images\self_intersection_inside.gif)
+![self_intersection_inside](images/self_intersection_inside.gif)
 
 
 

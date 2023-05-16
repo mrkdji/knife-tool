@@ -10,6 +10,14 @@ If you use git you can also add it as a submodule:
 
 `git submodule add https://github.com/mrkdji/knife-tool.git addons/knife-tool`
 
+# Usage
+
+|Action|Key|
+|-|-|
+|Add Point|left mouse click|
+|Cancel Cut|right mouse click|
+|Confirm Cut|enter / return|
+
 # What you can do with the knife tool:
 - Simple cut
 

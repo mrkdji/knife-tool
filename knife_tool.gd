@@ -1,4 +1,4 @@
-tool
+@tool
 extends EditorPlugin
 
 # TODO:
@@ -44,11 +44,11 @@ var mouse_position = Vector2.ZERO;
 
 func _enter_tree():
 	
-	get_editor_interface().get_selection().connect("selection_changed", self, "on_editor_selection_changed");
+	get_editor_interface().get_selection().selection_changed.connect(self.on_editor_selection_changed)
 	
-	knife_tool_button = KNIFE_TOOL_BUTTON_SCENE.instance();
-	knife_tool_button.connect("toggled", self, "on_knife_button_toggled");
-	connect("cut_completed", knife_tool_button, "set_pressed", [false]);
+	knife_tool_button = KNIFE_TOOL_BUTTON_SCENE.instantiate();
+	knife_tool_button.toggled.connect(on_knife_button_toggled);
+	cut_completed.connect(knife_tool_button.set_pressed.bind(false));
 	
 	add_control_to_container(EditorPlugin.CONTAINER_CANVAS_EDITOR_MENU, knife_tool_button);
 	knife_tool_button.hide();
@@ -56,13 +56,13 @@ func _enter_tree():
 	var editors = get_polygon_editors();
 	for e in editors:
 		for c in e.get_children():
-			if c is ToolButton:
-				c.connect("pressed", self, "user_changed_tool");
-				knife_tool_button.connect("pressed", c, "set_pressed_no_signal", [false]);
+			if c is Button:
+				c.pressed.connect(user_changed_tool);
+				knife_tool_button.pressed.connect(c.set_pressed_no_signal.bind(false));
 
 
 func _exit_tree():
-	get_editor_interface().get_selection().disconnect("selection_changed", self, "on_editor_selection_changed");
+	get_editor_interface().get_selection().selection_changed.disconnect(on_editor_selection_changed);
 	remove_control_from_container(EditorPlugin.CONTAINER_CANVAS_EDITOR_MENU, knife_tool_button);
 
 
@@ -97,16 +97,17 @@ func on_knife_button_toggled(new_state):
 func on_editor_selection_changed():
 
 	var nodes = get_editor_interface().get_selection().get_selected_nodes();
-	knife_tool_button.pressed = false;
+	knife_tool_button.button_pressed = false;
 
-	if nodes.size() == 1 and handles(nodes.front()):
+	if nodes.size() == 1 and _handles(nodes.front()):
 		selected_polygon = nodes.front();
 	else:
 		selected_polygon = null;
 		current_state = States.WAIT;
 		
 
-func make_visible(visible):
+func _make_visible(visible):
+	print("calling make visible")
 	if visible:
 		knife_tool_button.show();
 	else:
@@ -114,11 +115,13 @@ func make_visible(visible):
 
 
 func is_valid_node_for_knife_tool(n):
-	return (n is Polygon2D) or (n is NavigationPolygonInstance) or (n is CollisionPolygon2D);
+	return (n is Polygon2D) or (n is NavigationRegion2D) or (n is CollisionPolygon2D);
 
 
-func handles(object):
+func _handles(object):
+	print("calling handles")
 	if is_valid_node_for_knife_tool(object):
+		print("We handle this object")
 		selected_polygon = object;
 		return true;
 #	elif object.get_class() == "MultiNodeEdit":
@@ -129,19 +132,20 @@ func handles(object):
 #				break;
 #		return can_handle;
 	else:
+		print("we do not handle object of type " + str(object))
 		selected_polygon = null;
 		current_state = States.WAIT;
 		return false;
 
 
 func from_editor_to_2d_scene_coordinates( position ):
-	return selected_polygon.get_viewport_transform().affine_inverse().xform(position);
+	return selected_polygon.get_viewport_transform().affine_inverse() * position;
 
 func from_2d_scene_to_editor_coordinates( position ):
-	return selected_polygon.get_viewport_transform().xform(position);
+	return selected_polygon.get_viewport_transform() * position;
 
 
-func forward_canvas_gui_input(event) -> bool:
+func _forward_canvas_gui_input(event) -> bool:
 
 	if current_state == States.WAIT: 
 		return DONT_CONSUME;
@@ -154,14 +158,14 @@ func forward_canvas_gui_input(event) -> bool:
 		pass;
 	
 	if event is InputEventMouseButton:
-		if event.button_index == BUTTON_LEFT and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			current_state = States.SLICE;
 
 			var mouse_pos_in_scene = selected_polygon.get_global_mouse_position();
 			points.push_back(event.position);
 			return CONSUME;
 
-		elif event.button_index == BUTTON_RIGHT and event.pressed:
+		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			cancel_slice();
 			return CONSUME;
 		
@@ -170,25 +174,25 @@ func forward_canvas_gui_input(event) -> bool:
 
 		if event is InputEventKey:
 			
-			if event.physical_scancode == KEY_ENTER and event.pressed:
+			if event.physical_keycode == KEY_ENTER and event.pressed:
 				confirm_slice();
 				return CONSUME;
 			
-			if event.physical_scancode == KEY_ESCAPE and event.pressed:
+			if event.physical_keycode == KEY_ESCAPE and event.pressed:
 				return CONSUME;
 				
 	return DONT_CONSUME;
 
 
-func forward_canvas_draw_over_viewport(overlay):
+func _forward_canvas_draw_over_viewport(overlay):
 
-	if not points.empty():
+	if not points.is_empty():
 		for i in points.size() - 1:
-			overlay.draw_circle(points[i], POINT_SIZE, Color.red);
-			overlay.draw_line(points[i], points[i+1], Color.red, LINE_WIDTH);
+			overlay.draw_circle(points[i], POINT_SIZE, Color.RED);
+			overlay.draw_line(points[i], points[i+1], Color.RED, LINE_WIDTH);
 		
-		overlay.draw_circle(points.back(), POINT_SIZE, Color.red);	
-		overlay.draw_line(points.back(), mouse_position, Color.red, LINE_WIDTH);
+		overlay.draw_circle(points.back(), POINT_SIZE, Color.RED);
+		overlay.draw_line(points.back(), mouse_position, Color.RED, LINE_WIDTH);
 
 
 func confirm_slice():
@@ -204,7 +208,7 @@ func confirm_slice():
 	# transform
 	var polygon = get_polygon_data(selected_polygon);
 	for i in polygon.size():
-		polygon[i] = selected_polygon.get_global_transform().xform(polygon[i]);
+		polygon[i] = selected_polygon.get_global_transform() * polygon[i];
 
 	# Check if it is hole:
 #	var are_all_points_inside_selected_polygon = true;
@@ -232,17 +236,17 @@ func confirm_slice():
 #			if step > 0:
 #				hole_points.invert();
 
-	if (Geometry.is_point_in_polygon(scene_points.front(), polygon) or 
-		Geometry.is_point_in_polygon(scene_points.back(), polygon)):
+	if (Geometry2D.is_point_in_polygon(scene_points.front(), polygon) or 
+		Geometry2D.is_point_in_polygon(scene_points.back(), polygon)):
 			abort_slice("Invalid input: Both start and end point of the cut must lie outside the polygon");
 			return;
 	
 
 
 	# returns an array of clipped polylines
-	var intersections : Array = Geometry.intersect_polyline_with_polygon_2d(scene_points, polygon);
+	var intersections : Array = Geometry2D.intersect_polyline_with_polygon(scene_points, polygon);
 	
-	if intersections.empty():
+	if intersections.is_empty():
 		abort_slice("Cut didn't intersect the selected polygon");
 		return;
 
@@ -260,11 +264,11 @@ func confirm_slice():
 			if intersection_index > 0:
 				polygon = get_polygon_data(current_polygon);
 				for i in polygon.size():
-					polygon[i] = current_polygon.get_global_transform().xform(polygon[i]);
-				intersection = Geometry.intersect_polyline_with_polygon_2d(intersection, polygon);
+					polygon[i] = current_polygon.get_global_transform() * polygon[i];
+				intersection = Geometry2D.intersect_polyline_with_polygon(intersection, polygon);
 				assert(intersection.size() < 2);
 
-				if intersection.empty():
+				if intersection.is_empty():
 					print("Empty intersection, pushing polygon for next iteration")
 					polygons_to_check_for_next_iteration.push_back(current_polygon);
 					continue;
@@ -278,7 +282,7 @@ func confirm_slice():
 			var self_intersect = false;
 			for i in range(0, intersection.size() - 2, 1):
 				for j in range(i + 2, intersection.size() - 1, 1):
-					var res = Geometry.segment_intersects_segment_2d(
+					var res = Geometry2D.segment_intersects_segment(
 						intersection[i], intersection[i+1],
 						intersection[j], intersection[j+1]);
 					
@@ -297,7 +301,7 @@ func confirm_slice():
 				for i in polygon.size():
 					var next_index = posmod(i + 1, polygon.size());
 
-					var point_on_segment = Geometry.get_closest_point_to_segment_2d(
+					var point_on_segment = Geometry2D.get_closest_point_to_segment(
 						extreme,
 						polygon[i], polygon[next_index]);
 
@@ -335,7 +339,7 @@ func confirm_slice():
 					internal_points_index -= 1;
 		
 				for i in polyslice.size():
-					polyslice[i] = current_polygon.get_global_transform().xform_inv(polyslice[i]);
+					polyslice[i] = current_polygon.get_global_transform().inverse() * polyslice[i];
 				
 				polygons_to_check_for_next_iteration.push_back(
 					create_new_polygon(current_polygon, polyslice)
@@ -369,7 +373,7 @@ func confirm_slice():
 	
 
 func do_split_polygon(former, parent, slices):
-	var is_scene_instance = not former.get_filename().empty();
+	var is_scene_instance = not former.scene_file_path.is_empty();
 	for s in slices:
 		parent.add_child(s);
 		if is_scene_instance:
@@ -393,9 +397,9 @@ func create_new_polygon(current_polygon, new_polygon_data):
 	var parent = current_polygon.get_parent();
 	var new_polygon;
 	
-	var is_scene_instance = not current_polygon.get_filename().empty()
+	var is_scene_instance = not current_polygon.scene_file_path.is_empty();
 	if is_scene_instance:
-		new_polygon = load( current_polygon.get_filename() ).instance();
+		new_polygon = load( current_polygon.scene_file_path ).instantiate();
 		new_polygon.global_position = current_polygon.global_position;
 	else:
 		new_polygon = current_polygon.duplicate(true);
@@ -415,7 +419,7 @@ func create_new_polygon(current_polygon, new_polygon_data):
 
 
 func abort_slice(error = ""):
-	if not error.empty():
+	if not error.is_empty():
 		printerr(error);
 	cancel_slice();
 
@@ -436,25 +440,25 @@ static func is_node_class_one_of(node, classes):
 
 
 static func set_polygon_data(node, polygon_data):
-	if node is NavigationPolygonInstance:
-		var navpoly = NavigationPolygon.new();
-		navpoly.add_outline(polygon_data);
-		navpoly.make_polygons_from_outlines();
-		node.navpoly = navpoly;
+	if node is NavigationRegion2D:
+		var navigation_polygon = NavigationPolygon.new();
+		navigation_polygon.add_outline(polygon_data);
+		navigation_polygon.make_polygons_from_outlines();
+		node.navigation_polygon = navigation_polygon;
 	else:
 		node.polygon = polygon_data;
 
 
 static func get_polygon_data(node):
-	if node is NavigationPolygonInstance:
-		assert(node.navpoly.get_outline_count() == 1, "we can only handle connected navigation polygon instances");
-		return node.navpoly.get_outline(0);
+	if node is NavigationRegion2D:
+		assert(node.navigation_polygon.get_outline_count() == 1, "we can only handle connected navigation polygon instances");
+		return node.navigation_polygon.get_outline(0);
 	
 	return node.polygon;
 
 
 static func get_polygon_orientation(polygon):
-	return 1 if Geometry.is_polygon_clockwise(polygon) else -1;
+	return 1 if Geometry2D.is_polygon_clockwise(polygon) else -1;
 
 
 static func origin_to_geometry(polygon_data):

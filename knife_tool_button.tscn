@@ -1,11 +1,13 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=2 format=3 uid="uid://db2k3b4i268m6"]
 
-[ext_resource path="res://addons/knife-tool/knife_tool_icon.svg" type="Texture" id=1]
+[ext_resource type="Texture2D" uid="uid://cr3w6pn684lws" path="res://addons/knife-tool/knife_tool_icon.svg" id="1"]
 
-[node name="KnifeToolButton" type="ToolButton"]
+[node name="KnifeToolButton" type="Button"]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_right = -996.0
-margin_bottom = -576.0
+offset_right = -1128.0
+offset_bottom = -624.0
 toggle_mode = true
-icon = ExtResource( 1 )
+icon = ExtResource("1")
+flat = true

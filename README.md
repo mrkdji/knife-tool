@@ -1,16 +1,25 @@
 # Polygon Knife Tool
- Godot plugin that let users slice Polygon2D, NavigationPolygonInstance and CollisionPolygon2D nodes.
+ Godot plugin that let users slice Polygon2D, NavigationPolygonInstance and CollisionPolygon2D nodes and scenes based on said nodes.
  
  At the moment the plugin is available only for **Godot 3.x**
 
-# Install Instructions
+- [Install Instructions](#install-instructions)
+- [Usage](#usage)
+- [What you can do with the knife tool:](#what-you-can-do-with-the-knife-tool)
+- [What you can't do with the knife tool:](#what-you-cant-do-with-the-knife-tool)
+- [Buy Me A Coffee](#buy-me-a-coffee)
+
+![use_case](images/use_case.gif)
+
+
+## Install Instructions
 Download and move the unzipped folder in your project addons folder.
 
 If you use git you can also add it as a submodule:
 
 `git submodule add https://github.com/mrkdji/knife-tool.git addons/knife-tool`
 
-# Usage
+## Usage
 
 |Action|Key|
 |-|-|
@@ -18,7 +27,7 @@ If you use git you can also add it as a submodule:
 |Cancel Cut|right mouse click|
 |Confirm Cut|enter / return|
 
-# What you can do with the knife tool:
+## What you can do with the knife tool:
 - Simple cut
 
 ![simple_cut](images/simple_cut.gif)
@@ -35,7 +44,7 @@ If you use git you can also add it as a submodule:
 
 ![self_intersection](images/self_intersection.gif)
 
-# What you can't do with the knife tool:
+## What you can't do with the knife tool:
 - Carve holes
 
 ![hole](images/hole.gif)
@@ -46,7 +55,7 @@ If you use git you can also add it as a submodule:
 
 
 
-# Buy Me A Coffee
+## Buy Me A Coffee
 
 If you find this tool useful ~~send me the munny~~ consider buying me a coffee:
 

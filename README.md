@@ -1,7 +1,7 @@
 # Polygon Knife Tool
  Godot plugin that let users slice Polygon2D, NavigationPolygonInstance and CollisionPolygon2D nodes and scenes based on said nodes.
  
- At the moment the plugin is available only for **Godot 3.x**
+ This is the **Godot 3.x version** of the plugin, if you are using **Godot 4.x** [click here](https://github.com/mrkdji/knife-tool/tree/master).
 
 - [Install Instructions](#install-instructions)
 - [Usage](#usage)
